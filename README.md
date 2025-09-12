@@ -1,15 +1,5 @@
 # AluVM rust implementation
 
-![Build](https://github.com/AluVM/rust-aluvm/workflows/Build/badge.svg)
-![Tests](https://github.com/AluVM/rust-aluvm/workflows/Tests/badge.svg)
-![Lints](https://github.com/AluVM/rust-aluvm/workflows/Lints/badge.svg)
-[![codecov](https://codecov.io/gh/AluVM/rust-aluvm/branch/master/graph/badge.svg)](https://codecov.io/gh/AluVM/rust-aluvm)
-
-[![crates.io](https://img.shields.io/crates/v/aluvm)](https://crates.io/crates/aluvm)
-[![Docs](https://docs.rs/aluvm/badge.svg)](https://docs.rs/aluvm)
-[![unsafe forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
-[![Apache-2 licensed](https://img.shields.io/crates/l/aluvm)](./LICENSE)
-
 Rust implementation of AluVM (arithmetic logic unit virtual machine) and
 assembler from Alu Assembly language into bytecode.
 
@@ -27,9 +17,6 @@ speed of computation. The main area of AluVM applications (using appropriate
 ISA extensions) is blockchain environments, consensus-critical computations,
 edge computing, multiparty computing (including deterministic machine learning),
 client-side-validation, sandboxed computing and genetic algorithms.
-
-For more details on AluVM, please check [the specification][AluVM], watch
-detailed presentation on [YouTube] or check [slides] from the presentation.
 
 ## Design
 
@@ -99,8 +86,6 @@ encoding (unsigned, signed integer or float) and operation behavior in
 situation when resulting value does not fit into the register (overflow or
 wrap for integers and one of four rounding options for floats).
 
-Check [the specification][AluVM] for the details.
-
 ### Registers
 
 **ALU registers:** 8 blocks of 32 registers
@@ -122,21 +107,3 @@ Check [the specification][AluVM] for the details.
 - Instruction complexity accumulator (ca0), 16 bits
 - Call stack register (cs0), 3*2^16 bits (192kB block)
 - Call stack pointer register (cp0), 16 bits
-
-## History
-
-- The need for AluVM recognized as a part of RGB project in
-  Mar, the 24 & 31st, 2021 (see developers call <https://youtu.be/JmKNyOMv68I>)
-- Concept was presented on 19th of May 2021
-  ([check the recoding](https://youtu.be/Mma0oyiVbSE))
-- v0.1 release of Rust AluVM implementation on the 28th of May 2021
-  ([ISA & API docs](https://docs.rs/aluvm/0.1.0/alure/))
-- v0.2 release with multiple enhancements on the 9 Jun 2021
-  ([ISA & API docs](https://docs.rs/aluvm/0.2.1/aluvm/)) – see presentation
-  on [Youtube] or read [slides]
-
-[AluVM]: https://github.com/AluVM/aluvm-spec
-
-[YouTube]: https://www.youtube.com/watch?v=brfWta7XXFQ
-
-[slides]: https://github.com/LNP-BP/presentations/blob/master/Presentation%20slides/AluVM.pdf

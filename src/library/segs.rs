@@ -38,7 +38,7 @@ use core::str::FromStr;
 use amplify::confinement;
 use amplify::confinement::Confined;
 use strict_encoding::stl::{AlphaCaps, AlphaCapsNum};
-use strict_encoding::{InvalidRString, RString};
+use strict_encoding::{DefaultBasedStrictDumb, InvalidRString, RString};
 
 use crate::library::constants::{
     ISAE_SEGMENT_MAX_COUNT, ISA_ID_MAX_LEN, ISA_ID_MIN_LEN, LIBS_SEGMENT_MAX_COUNT,
@@ -105,6 +105,7 @@ impl_ident_subtype!(IsaName);
     serde(crate = "serde_crate", transparent)
 )]
 pub struct IsaSeg(Confined<BTreeSet<IsaName>, 0, ISAE_SEGMENT_MAX_COUNT>);
+impl DefaultBasedStrictDumb for IsaSeg {}
 
 impl IsaSeg {
     /// Constructs ISAE segment from a string.
@@ -199,11 +200,12 @@ impl FromStr for IsaSeg {
     serde(crate = "serde_crate", transparent)
 )]
 pub struct LibSeg(Confined<BTreeSet<LibId>, 0, LIBS_SEGMENT_MAX_COUNT>);
+impl DefaultBasedStrictDumb for LibSeg {}
 
 impl LibSeg {
     /// Returns iterator over unique libraries iterated in the deterministic (lexicographic) order
     #[inline]
-    pub fn iter(&self) -> ::alloc::collections::btree_set::Iter<LibId> { self.into_iter() }
+    pub fn iter(&self) -> ::alloc::collections::btree_set::Iter<'_, LibId> { self.into_iter() }
 }
 
 impl<'a> IntoIterator for &'a LibSeg {

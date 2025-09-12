@@ -36,6 +36,7 @@ use amplify::confinement::SmallBlob;
 use amplify::{confinement, ByteArray, Bytes32};
 use baid64::{Baid64ParseError, DisplayBaid64, FromBaid64Str};
 use sha2::{Digest, Sha256};
+use strict_encoding::DefaultBasedStrictDumb;
 #[cfg(feature = "std")]
 use strict_encoding::{StrictDeserialize, StrictSerialize};
 
@@ -69,6 +70,7 @@ pub struct LibId(
     #[from([u8; 32])]
     Bytes32,
 );
+impl DefaultBasedStrictDumb for LibId {}
 
 impl DisplayBaid64 for LibId {
     const HRI: &'static str = "alu";
@@ -137,6 +139,7 @@ pub struct Lib {
     /// Libs segment
     pub libs: LibSeg,
 }
+impl DefaultBasedStrictDumb for Lib {}
 
 #[cfg(feature = "std")]
 impl StrictSerialize for Lib {}
@@ -496,6 +499,7 @@ pub struct LibSite {
     /// Offset from the beginning of the code, in bytes
     pub pos: u16,
 }
+impl DefaultBasedStrictDumb for LibSite {}
 
 impl LibSite {
     /// Constricts library site reference from a given position and library hash

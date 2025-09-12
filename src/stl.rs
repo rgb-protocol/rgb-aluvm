@@ -27,7 +27,7 @@
 
 use core::convert::TryFrom;
 
-use strict_types::typelib::{CompileError, LibBuilder};
+use strict_types::typelib::LibBuilder;
 use strict_types::TypeLib;
 
 use crate::library::{Lib, LibSite};
@@ -37,18 +37,14 @@ use crate::LIB_NAME_ALUVM;
 pub const LIB_ID_ALUVM: &str =
     "stl:myo90uZg-uGl~PpV-Wyevvqm-yuOJvS2-bKHJDWN-fgv9sjE#jargon-gorilla-poetic";
 
-fn _aluvm_stl() -> Result<TypeLib, CompileError> {
-    LibBuilder::with(libname!(LIB_NAME_ALUVM), [
-        strict_types::stl::std_stl().to_dependency_types(),
-        strict_types::stl::strict_types_stl().to_dependency_types(),
-    ])
-    .transpile::<LibSite>()
-    .transpile::<Lib>()
-    .compile()
-}
-
 /// Generates strict type library providing data types from this crate.
-pub fn aluvm_stl() -> TypeLib { _aluvm_stl().expect("invalid strict type AluVM library") }
+pub fn aluvm_stl() -> TypeLib {
+    LibBuilder::with(libname!(LIB_NAME_ALUVM), [strict_types::stl::std_stl().to_dependency_types()])
+        .transpile::<Lib>()
+        .transpile::<LibSite>()
+        .compile()
+        .unwrap()
+}
 
 #[cfg(test)]
 mod test {

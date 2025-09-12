@@ -1,10 +1,9 @@
 [package]
-name = "aluvm"
+name = "rgb-aluvm"
 description = "Functional registry-based RISC virtual machine"
 version = "0.11.1-alpha.2"
-authors = ["Dr Maxim Orlovsky <orlovsky@ubideco.org>"]
-repository = "https://github.com/aluvm/rust-aluvm"
-homepage = "https://aluvm.org"
+authors = ["Zoe Faltibà <zoefaltiba@gmail.com>"]
+repository = "https://github.com/rgb-protocol/rgb-aluvm"
 keywords = ["virtual-machine", "emulator", "functional", "risc", "edge-computing"]
 categories = ["no-std", "embedded", "compilers", "cryptography", "emulators"]
 rust-version = "1.82.0"
@@ -21,37 +20,82 @@ name = "aluvm-stl"
 required-features = ["stl"]
 
 [dependencies]
-amplify = { version = "~4.8.0", default-features = false, features = ["apfloat", "derive", "hex"] }
-ascii-armor = { version = "0.9.0", optional = true }
-baid64 = "0.4.1"
+amplify = { version = "=4.8.1", default-features = false, features = [
+    "apfloat",
+    "derive",
+    "hex",
+] }
+rgb-ascii-armor = { version = "1.0.0", optional = true }
+baid64 = "=0.4.1"
 paste = "1"
-strict_encoding = { version = "~2.8.2", default-features = false, features = ["float", "derive"] }
-strict_types = { version = "~2.8.3", optional = true }
+rgb-strict-encoding = { version = "~1.0.0", default-features = false, features = [
+    "float",
+    "derive",
+] }
+rgb-strict-types = { version = "~1.0.0", optional = true }
 sha2 = "0.10.8"
 blake3 = "1.5.4"
 ripemd = "0.1.3"
-secp256k1 = { version = "0.30.0", optional = true, features = ["global-context"] }
+secp256k1 = { version = "0.29.1", optional = true, features = [
+    "global-context",
+] }
 curve25519-dalek = { version = "4.1.3", optional = true }
 half = "2.4.1" # Required to maintain MSRV
 serde_crate = { package = "serde", version = "1", optional = true }
 
 [features]
-default = ["std"]
-all = ["stl", "std", "log", "secp256k1", "curve25519", "serde", "ascii-armor"]
-stl = ["strict_types/armor", "std"]
-std = ["amplify/std"]
-log = ["std"]
-alloc = ["amplify/alloc"]
-curve25519 = ["curve25519-dalek"]
-serde = ["serde_crate", "amplify/serde", "std", "strict_encoding/serde"]
+default = [
+    "std",
+]
+all = [
+    "stl",
+    "std",
+    "log",
+    "secp256k1",
+    "curve25519",
+    "serde",
+    "ascii-armor",
+]
+ascii-armor = [
+    "rgb-ascii-armor",
+]
+stl = [
+    "rgb-strict-types/armor",
+    "std"
+]
+std = [
+    "amplify/std",
+]
+log = [
+    "std",
+]
+alloc = [
+    "amplify/alloc",
+]
+curve25519 = [
+    "curve25519-dalek",
+]
+serde = [
+    "serde_crate",
+    "amplify/serde",
+    "std",
+    "rgb-strict-encoding/serde",
+]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2"
 rand = { version = "0.9.1", optional = true }
-getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom = { version = "0.3", features = [
+    "wasm_js",
+] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
 [package.metadata.docs.rs]
 features = ["all"]
+
+[patch.crates-io]
+rgb-strict-encoding = { git = "http://github.com/rgb-protocol/rgb-strict-encoding", branch = "master"}
+rgb-ascii-armor = { git = "http://github.com/rgb-protocol/rgb-ascii-armor", branch = "master"}
+rgb-strict-types = { git = "http://github.com/rgb-protocol/rgb-strict-types", branch = "master"}
