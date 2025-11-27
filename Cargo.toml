@@ -1,7 +1,7 @@
 [package]
 name = "rgb-aluvm"
 description = "Functional registry-based RISC virtual machine"
-version = "0.11.1-alpha.2"
+version = "0.11.1-rc.1"
 authors = ["Zoe Faltibà <zoefaltiba@gmail.com>"]
 repository = "https://github.com/rgb-protocol/rgb-aluvm"
 keywords = ["virtual-machine", "emulator", "functional", "risc", "edge-computing"]
@@ -94,8 +94,3 @@ wasm-bindgen-test = "0.3"
 
 [package.metadata.docs.rs]
 features = ["all"]
-
-[patch.crates-io]
-rgb-strict-encoding = { git = "http://github.com/rgb-protocol/rgb-strict-encoding", branch = "master"}
-rgb-ascii-armor = { git = "http://github.com/rgb-protocol/rgb-ascii-armor", branch = "master"}
-rgb-strict-types = { git = "http://github.com/rgb-protocol/rgb-strict-types", branch = "master"}
