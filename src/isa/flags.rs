@@ -219,7 +219,7 @@ pub enum FloatEqFlag {
     Exact = 0,
 
     /// Use rounded matching, when floats which differ only on a single bit in significand are
-    /// still treated as euqal.
+    /// still treated as equal.
     #[display("r")]
     Rounding = 1,
 }

@@ -1,0 +1,11 @@
+[default.extend-words]
+# Don't correct the name "Jon Atack".
+Atack = "Atack"
+
+[default.extend-identifiers]
+Cpy = "Cpy"
+CpyA = "CpyA"
+CpyR = "CpyR"
+INSTR_CAF = "INSTR_CAF"
+INSTR_CNA = "INSTR_CNA"
+cpy = "cpy"
