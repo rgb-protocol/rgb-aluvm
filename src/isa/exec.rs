@@ -809,20 +809,16 @@ impl InstructionSet for ArithmeticOp {
                 regs.get_n(reg, idx).and_then(|val| {
                     if step.as_i8() < 0 {
                         let mut n = Number::from(-step.as_i8());
-                        debug_assert!(
-                            n.reshape(val.layout()),
-                            "reshape target byte length is always greater"
-                        );
+                        let reshaped = n.reshape(val.layout());
+                        debug_assert!(reshaped, "reshape target byte length is always greater");
                         val.int_sub(n, IntFlags {
                             signed: false,
                             wrap: false,
                         })
                     } else {
                         let mut n = Number::from(*step);
-                        debug_assert!(
-                            n.reshape(val.layout()),
-                            "reshape target byte length is always greater"
-                        );
+                        let reshaped = n.reshape(val.layout());
+                        debug_assert!(reshaped, "reshape target byte length is always greater");
                         val.int_add(n, IntFlags {
                             signed: false,
                             wrap: false,
