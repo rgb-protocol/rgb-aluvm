@@ -1518,7 +1518,8 @@ impl InstructionSet for Secp256k1Op {
                         let src = src.as_mut();
                         // little endian to big endian
                         src.reverse();
-                        SecretKey::from_slice(src).ok()
+                        let key_bytes: [u8; 32] = src.try_into().ok()?;
+                        SecretKey::from_byte_array(key_bytes).ok()
                     })
                     .map(|sk| PublicKey::from_secret_key(SECP256K1, &sk))
                     .as_ref()
