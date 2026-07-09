@@ -148,7 +148,7 @@ impl StrictDeserialize for Lib {}
 
 impl Display for Lib {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        writeln!(f, "ISAE:   {}", &self.isae)?;
+        writeln!(f, "ISAE:   {}", self.isae)?;
         write!(f, "CODE:\n{:#10}", ByteStr::with(self.code.as_ref()))?;
         write!(f, "DATA:\n{:#10}", ByteStr::with(self.data.as_ref()))?;
         if self.libs.count() > 0 {
