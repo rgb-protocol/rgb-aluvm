@@ -25,14 +25,14 @@ amplify = { version = "=4.8.1", default-features = false, features = [
     "derive",
     "hex",
 ] }
-rgb-ascii-armor = { version = "1.0.1", optional = true }
+rgb-ascii-armor = { version = "1.0.2", optional = true }
 baid64 = "=0.4.1"
 paste = "1"
-rgb-strict-encoding = { version = "~1.0.1", default-features = false, features = [
+rgb-strict-encoding = { version = "~1.0.2", default-features = false, features = [
     "float",
     "derive",
 ] }
-rgb-strict-types = { version = "~1.0.1", optional = true }
+rgb-strict-types = { version = "~1.0.2", optional = true }
 sha2 = "0.11.0"
 blake3 = "1.8.5"
 ripemd = "0.2.0"
@@ -93,8 +93,3 @@ wasm-bindgen-test = "0.3"
 
 [package.metadata.docs.rs]
 features = ["all"]
-
-[patch.crates-io]
-rgb-strict-encoding = { git = "https://github.com/rgb-protocol/rgb-strict-encoding", branch = "master" }
-rgb-ascii-armor = { git = "https://github.com/rgb-protocol/rgb-ascii-armor", branch = "master" }
-rgb-strict-types = { git = "https://github.com/rgb-protocol/rgb-strict-types", branch = "master" }
