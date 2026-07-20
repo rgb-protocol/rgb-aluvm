@@ -1373,14 +1373,25 @@ impl InstructionSet for BytesOp {
                     regs.s16[dst.as_usize()] = None;
                 })
             }
-            BytesOp::Splt(flag, offset, src, dst1, dst2) => {
-                todo!("#(6) complete bytestring opcode implementation")
+            // `splt`/`ins`/`del` are not yet implemented (see issue #6). Until
+            // they are, fail the operation gracefully instead of panicking the
+            // interpreter: these opcodes are reachable from an attacker-authored
+            // validator script shipped in a consignment, so a `todo!()` here is
+            // a remote DoS on the receiver. Mirror the failure handling of the
+            // other bytestring opcodes (Con/Inj/Join): mark the computation
+            // failed (`st0 = false`) and clear the destination register(s).
+            BytesOp::Splt(_flag, _offset, _src, dst1, dst2) => {
+                regs.st0 = false;
+                regs.s16[dst1.as_usize()] = None;
+                regs.s16[dst2.as_usize()] = None;
             }
-            BytesOp::Ins(flag, offset, src, dst) => {
-                todo!("#(6) complete bytestring opcode implementation")
+            BytesOp::Ins(_flag, _offset, _src, dst) => {
+                regs.st0 = false;
+                regs.s16[dst.as_usize()] = None;
             }
-            BytesOp::Del(flag, reg1, offset1, reg2, offset2, flag1, flag2, src, dst) => {
-                todo!("#(6) complete bytestring opcode implementation")
+            BytesOp::Del(_flag, _reg1, _offset1, _reg2, _offset2, _flag1, _flag2, _src, dst) => {
+                regs.st0 = false;
+                regs.s16[dst.as_usize()] = None;
             }
         }
         ExecStep::Next
