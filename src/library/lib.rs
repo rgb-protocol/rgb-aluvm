@@ -513,6 +513,8 @@ impl LibSite {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::isa::opcodes::INSTR_JMP;
+    use crate::isa::{Instr, ReservedOp};
 
     #[test]
     fn lib_id_display() {
@@ -547,5 +549,17 @@ mod test {
         );
 
         assert_eq!(id, LibId::from_str("650XHPmhWpXWR5RUz4B5jXjeDqcyrHXpdZxYaX9gfO4").unwrap());
+    }
+
+    #[test]
+    fn exec_decode_error_fails() {
+        // `jmp` instruction truncated in the middle of its 16-bit offset argument
+        let lib = Lib::with("ALU", vec![INSTR_JMP, 0x00], vec![], none!()).unwrap();
+        let mut registers = CoreRegs::default();
+        assert!(registers.st0);
+
+        let next = lib.exec::<Instr<ReservedOp>>(0, &mut registers, &());
+        assert_eq!(next, None);
+        assert!(!registers.st0, "bytecode which can't be decoded must fail the execution");
     }
 }
