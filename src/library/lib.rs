@@ -410,7 +410,12 @@ impl Lib {
         while !cursor.is_eof() {
             let pos = cursor.pos();
 
-            let instr = Isa::decode(&mut cursor).ok()?;
+            let Ok(instr) = Isa::decode(&mut cursor) else {
+                registers.st0 = false;
+                #[cfg(feature = "log")]
+                eprintln!("unable to decode instruction; halting, {d}st0{z} is set to {r}false{z}");
+                return None;
+            };
 
             #[cfg(feature = "log")]
             {
