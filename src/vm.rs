@@ -60,7 +60,8 @@ where Isa: InstructionSet
     ///
     /// # Returns
     ///
-    /// Value of the `st0` register at the end of the program execution.
+    /// Value of the `st0` register at the end of the program execution, which is `false` if the
+    /// program enters a library `lib_resolver` does not provide.
     pub fn exec<'prog>(
         &mut self,
         entry_point: LibSite,
@@ -68,15 +69,53 @@ where Isa: InstructionSet
         context: &Isa::Context<'_>,
     ) -> bool {
         let mut call = Some(entry_point);
-        while let Some(ref mut site) = call {
+        while let Some(site) = call {
             if let Some(lib) = lib_resolver(site.lib) {
                 call = lib.exec::<Isa>(site.pos, &mut self.registers, context);
-            } else if let Some(pos) = site.pos.checked_add(1) {
-                site.pos = pos;
             } else {
+                self.registers.st0 = false;
                 call = None;
             };
         }
         self.registers.st0
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::isa::ControlFlowOp::{self, *};
+
+    fn lib(code: impl IntoIterator<Item = ControlFlowOp>) -> Lib {
+        let code = code.into_iter().map(Instr::<ReservedOp>::ControlFlow).collect::<Vec<_>>();
+        Lib::assemble(&code).unwrap()
+    }
+
+    fn run(entry: &Lib, libs: &[&Lib]) -> bool {
+        let mut vm = Vm::<Instr>::new();
+        let resolver = |id| libs.iter().copied().chain([entry]).find(|lib| lib.id() == id);
+        vm.exec(LibSite::with(0, entry.id()), resolver, &())
+    }
+
+    #[test]
+    fn routine_returns_after_itself() {
+        assert!(!run(&lib([Routine(4), Fail, Ret]), &[]));
+        assert!(run(&lib([Routine(4), Ret, Ret]), &[]));
+    }
+
+    #[test]
+    fn call_returns_after_itself() {
+        let helper = lib([Ret]);
+        let site = LibSite::with(0, helper.id());
+        assert!(!run(&lib([Call(site), Fail, Ret]), &[&helper]));
+        assert!(run(&lib([Call(site), Ret, Ret]), &[&helper]));
+    }
+
+    #[test]
+    fn call_into_unresolved_lib_fails() {
+        let helper = lib([Ret]);
+        let site = LibSite::with(0, helper.id());
+        assert!(!run(&lib([Call(site), Ret]), &[]));
+        assert!(!run(&lib([Exec(site)]), &[]));
     }
 }

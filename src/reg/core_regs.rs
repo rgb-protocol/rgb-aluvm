@@ -30,6 +30,7 @@ use alloc::string::ToString;
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::vec::Vec;
 use core::fmt::{self, Debug, Formatter};
+use core::mem;
 
 use amplify::hex::ToHex;
 use amplify::num::apfloat::{ieee, Float};
@@ -194,6 +195,7 @@ impl CoreRegs {
             .and_then(|_| {
                 self.cp0
                     .checked_add(1)
+                    .map(|cp| self.cp0 = cp)
                     .ok_or_else(|| {
                         self.st0 = false;
                     })
@@ -205,9 +207,8 @@ impl CoreRegs {
         if self.cp0 == 0 {
             None
         } else {
-            self.cs0[self.cp0 as usize] = LibSite::default();
             self.cp0 -= 1;
-            Some(self.cs0[self.cp0 as usize])
+            Some(mem::take(&mut self.cs0[self.cp0 as usize]))
         }
     }
 
@@ -908,5 +909,23 @@ mod test {
         }
 
         eprintln!("{regs:#?}");
+    }
+
+    #[test]
+    fn call_pushes_and_ret_pops() {
+        let mut regs = CoreRegs::new();
+        let first = LibSite::with(3, zero!());
+        let second = LibSite::with(7, zero!());
+
+        regs.call(first).unwrap();
+        regs.call(second).unwrap();
+        assert_eq!(regs.cp0, 2);
+
+        assert_eq!(regs.ret(), Some(second));
+        assert_eq!(regs.ret(), Some(first));
+        assert_eq!(regs.ret(), None);
+        assert_eq!(regs.cp0, 0);
+        assert_eq!(regs.cs0[0], LibSite::default());
+        assert_eq!(regs.cs0[1], LibSite::default());
     }
 }

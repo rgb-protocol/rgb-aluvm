@@ -206,6 +206,11 @@ where Extension: InstructionSet
     }
 }
 
+/// Byte length of an encoded `routine`: opcode and a 16-bit offset
+const ROUTINE_LEN: u16 = 3;
+/// Byte length of an encoded `call`: opcode, a 16-bit offset and a library index
+const CALL_LEN: u16 = 4;
+
 impl InstructionSet for ControlFlowOp {
     type Context<'ctx> = ();
 
@@ -239,12 +244,20 @@ impl InstructionSet for ControlFlowOp {
                     ExecStep::Next
                 }
             }
-            ControlFlowOp::Routine(offset) => {
-                regs.call(site).map(|_| ExecStep::Jump(*offset)).unwrap_or(ExecStep::Fail)
-            }
-            ControlFlowOp::Call(site) => {
-                regs.call(*site).map(|_| ExecStep::Call(*site)).unwrap_or(ExecStep::Fail)
-            }
+            ControlFlowOp::Routine(offset) => site
+                .pos
+                .checked_add(ROUTINE_LEN)
+                .ok_or(())
+                .and_then(|pos| regs.call(LibSite::with(pos, site.lib)))
+                .map(|_| ExecStep::Jump(*offset))
+                .unwrap_or(ExecStep::Fail),
+            ControlFlowOp::Call(target) => site
+                .pos
+                .checked_add(CALL_LEN)
+                .ok_or(())
+                .and_then(|pos| regs.call(LibSite::with(pos, site.lib)))
+                .map(|_| ExecStep::Call(*target))
+                .unwrap_or(ExecStep::Fail),
             ControlFlowOp::Exec(site) => {
                 regs.jmp().map(|_| ExecStep::Call(*site)).unwrap_or(ExecStep::Fail)
             }
@@ -1605,6 +1618,7 @@ impl InstructionSet for ReservedOp {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::library::Lib;
     #[cfg(feature = "secp256k1")]
     use crate::reg::{Reg8, RegBlockAR};
 
@@ -1864,5 +1878,13 @@ mod tests {
             &(),
         );
         assert!(register.st0);
+    }
+
+    #[test]
+    fn return_offsets_match_encoding() {
+        let len = |op| Lib::assemble(&[Instr::<ReservedOp>::ControlFlow(op)]).unwrap().code.len();
+
+        assert_eq!(len(ControlFlowOp::Routine(0)), ROUTINE_LEN as usize);
+        assert_eq!(len(ControlFlowOp::Call(LibSite::default())), CALL_LEN as usize);
     }
 }

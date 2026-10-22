@@ -125,18 +125,20 @@ pub enum ControlFlowOp {
     Jif(u16),
 
     /// Jumps to other location in the current code with ability to return back (calls a
-    /// subroutine). Increments `cy0` and pushes offset of the instruction which follows current
-    /// one to `cs0`.
+    /// subroutine). Increments `cy0` and `cp0` and pushes offset of the instruction which follows
+    /// current one to `cs0`. Since returning to the end of the code fails, it must not be the last
+    /// instruction.
     #[display("routine {0:#06X}")]
     Routine(u16),
 
     /// Calls code from an external library identified by the hash of its code. Increments `cy0`
-    /// and `cp0` and pushes offset of the instruction which follows current one to `cs0`.
+    /// and `cp0` and pushes offset of the instruction which follows current one to `cs0`. Since
+    /// returning to the end of the code fails, it must not be the last instruction.
     #[display("call    {0}")]
     Call(LibSite),
 
-    /// Passes execution to other library without an option to return. Does not increment `cy0` and
-    /// `cp0` counters and does not add anything to the call stack `cs0`.
+    /// Passes execution to other library without an option to return. Increments `cy0`, does not
+    /// increment `cp0` and does not add anything to the call stack `cs0`.
     #[display("exec    {0}")]
     Exec(LibSite),
 
