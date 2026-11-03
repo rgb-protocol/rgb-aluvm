@@ -556,7 +556,7 @@ impl Debug for CoreRegs {
         write!(f, "{}cl0{}={}{} ", reg, eq, val, cl)?;
         write!(f, "{}cp0{}={}{} ", reg, eq, val, self.cp0)?;
         write!(f, "\n\t\t{}cs0{}={}", reg, eq, val)?;
-        for p in 0..=self.cp0 {
+        for p in 0..self.cp0 {
             write!(f, "{}\n\t\t   ", self.cs0[p as usize])?;
         }
 
