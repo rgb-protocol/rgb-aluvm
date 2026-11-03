@@ -507,7 +507,9 @@ impl Lib {
             }
         }
 
-        None
+        // running off the end of the code acts as `ret`: a subroutine without a trailing `ret`
+        // returns to its caller, while with an empty call stack the program halts
+        registers.ret()
     }
 }
 

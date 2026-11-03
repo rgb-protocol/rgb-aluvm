@@ -143,7 +143,8 @@ pub enum ControlFlowOp {
     Exec(LibSite),
 
     /// Returns execution flow to the previous location from the top of `cs0`. Does not change the
-    /// value in `cy0`. Decrements `cp0`.
+    /// value in `cy0`. Decrements `cp0`. Halts the program if `cs0` is empty. Running off the end
+    /// of the code acts as `ret`.
     #[display("ret")]
     Ret,
 }

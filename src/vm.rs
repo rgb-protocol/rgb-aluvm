@@ -115,6 +115,20 @@ mod test {
     }
 
     #[test]
+    fn routine_running_off_the_end_returns() {
+        assert!(!run(&lib([Routine(4), Fail, Test]), &[]));
+        assert!(run(&lib([Routine(4), Ret, Test]), &[]));
+    }
+
+    #[test]
+    fn call_running_off_the_end_returns() {
+        let helper = lib([Test]);
+        let site = LibSite::with(0, helper.id());
+        assert!(!run(&lib([Call(site), Fail, Ret]), &[&helper]));
+        assert!(run(&lib([Call(site), Ret, Ret]), &[&helper]));
+    }
+
+    #[test]
     fn call_into_unresolved_lib_fails() {
         let helper = lib([Ret]);
         let site = LibSite::with(0, helper.id());
