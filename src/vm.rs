@@ -62,6 +62,9 @@ where Isa: InstructionSet
     ///
     /// Value of the `st0` register at the end of the program execution, which is `false` if the
     /// program enters a library `lib_resolver` does not provide.
+    ///
+    /// `lib_resolver` must return the library whose id it is given: the id is taken as the id of
+    /// the returned library, so that returning into a library does not hash it again.
     pub fn exec<'prog>(
         &mut self,
         entry_point: LibSite,
@@ -71,7 +74,7 @@ where Isa: InstructionSet
         let mut call = Some(entry_point);
         while let Some(site) = call {
             if let Some(lib) = lib_resolver(site.lib) {
-                call = lib.exec::<Isa>(site.pos, &mut self.registers, context);
+                call = lib.exec_with_id::<Isa>(site.lib, site.pos, &mut self.registers, context);
             } else {
                 self.registers.st0 = false;
                 call = None;

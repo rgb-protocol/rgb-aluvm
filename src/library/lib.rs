@@ -378,6 +378,25 @@ impl Lib {
     where
         Isa: InstructionSet,
     {
+        self.exec_with_id::<Isa>(self.id(), entrypoint, registers, context)
+    }
+
+    /// Executes library code starting at entrypoint, taking `lib_id` as the id of this library
+    /// instead of hashing it, which callers entering the same library many times rely on.
+    ///
+    /// # Returns
+    ///
+    /// Location for the external code jump, if any
+    pub(crate) fn exec_with_id<Isa>(
+        &self,
+        lib_id: LibId,
+        entrypoint: u16,
+        registers: &mut CoreRegs,
+        context: &Isa::Context<'_>,
+    ) -> Option<LibSite>
+    where
+        Isa: InstructionSet,
+    {
         #[cfg(feature = "log")]
         let (m, w, d, g, r, y, z) = (
             "\x1B[0;35m",
@@ -390,7 +409,6 @@ impl Lib {
         );
 
         let mut cursor = Cursor::with(&self.code, &self.data, &self.libs);
-        let lib_id = self.id();
 
         #[cfg(feature = "log")]
         let lib_mnemonic = lib_id.to_baid64_mnemonic();
