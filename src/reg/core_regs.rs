@@ -183,24 +183,18 @@ impl CoreRegs {
     }
 
     pub(crate) fn call(&mut self, site: LibSite) -> Result<(), ()> {
-        self.cy0
-            .checked_add(1)
-            .map(|cy| self.cy0 = cy)
-            .ok_or_else(|| {
-                self.st0 = false;
-            })
-            .map(|_| {
+        match (self.cy0.checked_add(1), self.cp0.checked_add(1)) {
+            (Some(cy), Some(cp)) => {
                 self.cs0[self.cp0 as usize] = site;
-            })
-            .and_then(|_| {
-                self.cp0
-                    .checked_add(1)
-                    .map(|cp| self.cp0 = cp)
-                    .ok_or_else(|| {
-                        self.st0 = false;
-                    })
-                    .map(|_| ())
-            })
+                self.cy0 = cy;
+                self.cp0 = cp;
+                Ok(())
+            }
+            _ => {
+                self.st0 = false;
+                Err(())
+            }
+        }
     }
 
     pub(crate) fn ret(&mut self) -> Option<LibSite> {
@@ -927,5 +921,17 @@ mod test {
         assert_eq!(regs.cp0, 0);
         assert_eq!(regs.cs0[0], LibSite::default());
         assert_eq!(regs.cs0[1], LibSite::default());
+    }
+
+    #[test]
+    fn call_on_full_stack_pushes_nothing() {
+        let mut regs = CoreRegs::new();
+        regs.cp0 = u16::MAX;
+
+        assert!(regs.call(LibSite::with(3, zero!())).is_err());
+        assert!(!regs.st0);
+        assert_eq!(regs.cy0, 0);
+        assert_eq!(regs.cp0, u16::MAX);
+        assert_eq!(regs.cs0[u16::MAX as usize], LibSite::default());
     }
 }
