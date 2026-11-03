@@ -197,6 +197,13 @@ impl CoreRegs {
         }
     }
 
+    /// Empties the call stack, dropping the frames a failed run left on it.
+    pub(crate) fn clear_call_stack(&mut self) {
+        // `ret` resets every frame it pops, so only the frames below `cp0` hold anything
+        self.cs0[..self.cp0 as usize].fill(LibSite::default());
+        self.cp0 = 0;
+    }
+
     pub(crate) fn ret(&mut self) -> Option<LibSite> {
         if self.cp0 == 0 {
             None

@@ -65,12 +65,15 @@ where Isa: InstructionSet
     ///
     /// `lib_resolver` must return the library whose id it is given: the id is taken as the id of
     /// the returned library, so that returning into a library does not hash it again.
+    ///
+    /// Starts with an empty call stack; all other registers keep the values they have.
     pub fn exec<'prog>(
         &mut self,
         entry_point: LibSite,
         lib_resolver: impl Fn(LibId) -> Option<&'prog Lib>,
         context: &Isa::Context<'_>,
     ) -> bool {
+        self.registers.clear_call_stack();
         let mut call = Some(entry_point);
         while let Some(site) = call {
             if let Some(lib) = lib_resolver(site.lib) {
@@ -126,6 +129,20 @@ mod test {
         let site = LibSite::with(0, helper.id());
         assert!(!run(&lib([Call(site), Fail, Ret]), &[&helper]));
         assert!(run(&lib([Call(site), Ret, Ret]), &[&helper]));
+    }
+
+    #[test]
+    fn exec_drops_frames_of_previous_run() {
+        // the routine fails, leaving the frame returning into the first `fail`
+        let failing = lib([Routine(4), Fail, Fail]);
+        let ret = lib([Ret]);
+        let resolver = |id| [&failing, &ret].into_iter().find(|lib| lib.id() == id);
+
+        let mut vm = Vm::<Instr>::new();
+        assert!(!vm.exec(LibSite::with(0, failing.id()), resolver, &()));
+        // as if the second program had set `st0` itself, so only the call stack is carried over
+        vm.registers.st0 = true;
+        assert!(vm.exec(LibSite::with(0, ret.id()), resolver, &()));
     }
 
     #[test]
