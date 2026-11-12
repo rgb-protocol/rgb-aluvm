@@ -1266,6 +1266,10 @@ impl InstructionSet for BytesOp {
                     let (s1, s2) = regs.get_s2(*reg1, *reg2)?;
                     let r1 = s1.as_ref();
                     let r2 = s2.as_ref();
+                    // `windows` panics on a zero-length fragment
+                    if r2.is_empty() {
+                        return None;
+                    }
                     let count = r1.windows(r2.len()).filter(|r1| *r1 == r2).count();
                     assert!(count <= u16::MAX as usize);
                     regs.set_n(RegA::A16, Reg32::Reg0, count as u16);
@@ -1669,6 +1673,21 @@ mod tests {
         );
         assert!(!regs.st0, "a reversed fill range must fail the operation");
         assert_eq!(regs.s16(1).unwrap().as_ref(), &[0u8; 16][..], "nothing may be filled");
+    }
+
+    #[test]
+    fn bytes_find_empty_fragment() {
+        let mut regs = CoreRegs::default();
+        let lib_site = LibSite::default();
+        BytesOp::Put(1.into(), Box::new(ByteStr::with("banana".as_bytes())), false).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        BytesOp::Put(2.into(), Box::default(), false).exec(&mut regs, lib_site, &());
+        BytesOp::Find(1.into(), 2.into()).exec(&mut regs, lib_site, &());
+        assert!(!regs.st0, "searching for an empty fragment must fail the operation");
+        assert!(regs.get_n(RegA::A16, Reg32::Reg0).is_none());
     }
 
     #[test]
