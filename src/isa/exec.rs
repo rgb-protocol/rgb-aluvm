@@ -1200,6 +1200,10 @@ impl InstructionSet for BytesOp {
                 let mut f = || -> Option<()> {
                     let o1 = regs.a16[offset1.to_usize()]?;
                     let o2 = regs.a16[offset2.to_usize()]?;
+                    // a reversed range makes no sense here
+                    if o1 > o2 {
+                        return None;
+                    }
                     let range = o1..o2;
                     let val = regs.a8[value.to_usize()]?;
                     let ref mut bs = regs.s16[reg.as_usize()];
@@ -1632,6 +1636,40 @@ mod tests {
     use crate::library::Lib;
     #[cfg(feature = "secp256k1")]
     use crate::reg::{Reg8, RegBlockAR};
+
+    #[test]
+    fn bytes_fill_reversed_range() {
+        let mut regs = CoreRegs::default();
+        let lib_site = LibSite::default();
+        BytesOp::Put(1.into(), Box::new(ByteStr::with(&[0u8; 16][..])), false).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        // fill s1[5..3], a range whose start exceeds its end
+        PutOp::PutA(RegA::A16, Reg32::Reg0, MaybeNumber::from(5u16).into()).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        PutOp::PutA(RegA::A16, Reg32::Reg1, MaybeNumber::from(3u16).into()).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        PutOp::PutA(RegA::A8, Reg32::Reg2, MaybeNumber::from(0xFFu8).into()).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        BytesOp::Fill(1.into(), Reg32::Reg0, Reg32::Reg1, Reg32::Reg2, ExtendFlag::Extend).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        assert!(!regs.st0, "a reversed fill range must fail the operation");
+        assert_eq!(regs.s16(1).unwrap().as_ref(), &[0u8; 16][..], "nothing may be filled");
+    }
 
     #[test]
     fn bytes_con_test() {
