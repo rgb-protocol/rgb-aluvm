@@ -351,8 +351,10 @@ where
     fn read_data(&mut self) -> Result<(&[u8], bool), CodeEofError> {
         let offset = self.read_u16()? as usize;
         let end = offset + self.read_u16()? as usize;
-        let max = DATA_SEGMENT_MAX_LEN;
-        let st0 = end > self.data.as_ref().len();
+        // clamp against the actual segment, not against `DATA_SEGMENT_MAX_LEN`: the data segment
+        // is attacker-supplied and may be shorter than the offsets the code asks for
+        let max = self.data.as_ref().len();
+        let st0 = end > max;
         let data = &self.data.as_ref()[offset.min(max)..end.min(max)];
         Ok((data, st0))
     }
@@ -485,6 +487,16 @@ mod tests {
     use crate::data::{ByteStr, Number};
     use crate::library::{LibSeg, Read, Write};
     use crate::reg::RegA;
+
+    #[test]
+    fn read_data_past_segment() {
+        // `put` asking for one byte of an empty data segment: offset 0, length 1
+        let libseg = LibSeg::default();
+        let mut cursor = Cursor::<_, ByteStr>::with([0u8, 0, 1, 0], ByteStr::default(), &libseg);
+        let (data, st0) = cursor.read_data().unwrap();
+        assert!(data.is_empty());
+        assert!(st0, "reading past the data segment must set st0");
+    }
 
     #[test]
     fn read() {
