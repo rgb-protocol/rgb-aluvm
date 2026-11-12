@@ -653,10 +653,15 @@ impl InstructionSet for CmpOp {
                 let st = Number::from(regs.st0 as u8);
                 let res = match (*regs.get_n(reg, idx), merge_flag) {
                     (None, _) | (_, MergeFlag::Set) => st,
-                    (Some(val), MergeFlag::Add) => val
-                        .int_add(st, IntFlags {
-                            signed: false,
-                            wrap: false,
+                    // `int_add` asserts both operands share a layout, while the destination
+                    // register may be of any width, so bring the status value up to it first
+                    (Some(val), MergeFlag::Add) => st
+                        .reshaped(val.layout(), false)
+                        .and_then(|st| {
+                            val.int_add(st, IntFlags {
+                                signed: false,
+                                wrap: false,
+                            })
                         })
                         .unwrap_or(val),
                     (Some(val), MergeFlag::And) => val & st,
@@ -1638,8 +1643,36 @@ impl InstructionSet for ReservedOp {
 mod tests {
     use super::*;
     use crate::library::Lib;
+    use crate::reg::Reg8;
     #[cfg(feature = "secp256k1")]
-    use crate::reg::{Reg8, RegBlockAR};
+    use crate::reg::RegBlockAR;
+
+    #[test]
+    fn cmp_status_merge_into_wide_register() {
+        let lib_site = LibSite::default();
+        // rgb-consensus preloads a16[0] before running a validator, so `st.a a16[0]` merges the
+        // 8-bit status value into a register of a different width
+        let mut regs = CoreRegs::default();
+        PutOp::PutA(RegA::A16, Reg32::Reg0, MaybeNumber::from(300u16).into()).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        regs.st0 = true;
+        CmpOp::St(MergeFlag::Add, RegA::A16, Reg8::Reg0).exec(&mut regs, lib_site, &());
+        assert_eq!(regs.get_n(RegA::A16, Reg32::Reg0).unwrap(), Number::from(301u16));
+
+        // the same merge into a register of the status value's own width
+        let mut regs = CoreRegs::default();
+        PutOp::PutA(RegA::A8, Reg32::Reg0, MaybeNumber::from(7u8).into()).exec(
+            &mut regs,
+            lib_site,
+            &(),
+        );
+        regs.st0 = true;
+        CmpOp::St(MergeFlag::Add, RegA::A8, Reg8::Reg0).exec(&mut regs, lib_site, &());
+        assert_eq!(regs.get_n(RegA::A8, Reg32::Reg0).unwrap(), Number::from(8u8));
+    }
 
     #[test]
     fn bytes_fill_reversed_range() {
